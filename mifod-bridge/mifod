@@ -1,0 +1,6 @@
+#!/system/bin/sh
+# MiFod Bridge - 超声波指纹桥接服务
+
+JAR=/system/etc/mifod/fod-bridge.jar
+export CLASSPATH="$JAR"
+exec /system/bin/app_process64 /system/bin MiFodBridge "$@"

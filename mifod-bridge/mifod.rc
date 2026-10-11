@@ -1,0 +1,14 @@
+# MiFod Bridge - 超声波指纹桥接服务
+# 用于 ColorOS 移植到小米设备时桥接超声波指纹
+
+on post-fs-data
+    mkdir /data/vendor/mifod 0770 root root
+
+service mifod /system/bin/app_process64 /system/bin MiFodBridge
+    class late_start
+    user root
+    group root system input graphics readproc
+    seclabel u:r:su:s0
+    setenv CLASSPATH /system/etc/mifod/fod-bridge.jar
+    setenv ALLOW_BP_AUTH 1
+    setenv ALLOW_AUTH_OTHER 0
