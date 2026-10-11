@@ -1,0 +1,6 @@
+id=migesture
+name=MiGestureBridge (双击/抬手唤醒桥)
+version=1.0
+versionCode=1
+author=flyme-port
+description=把 Flyme 失效的双击亮屏/抬手亮屏桥接到小米 HyperOS 硬件接口：ITouchFeature.setModeValue(0,14,1) + xiaomi.sensor.pickup(33171036) -> PowerManager.wakeUp()

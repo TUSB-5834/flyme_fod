@@ -1,0 +1,17 @@
+# MiGestureBridge - 抬起唤醒 / 双击唤醒 桥接服务
+# 与 mifod.rc 同一套模式：app_process + jar，root 运行，seclabel u:r:su:s0
+# 安装：
+#   cp migesture.jar /system/etc/migesture/migesture.jar
+#   cp migesture.rc  /system/etc/init/migesture.rc
+#   chmod 0644 /system/etc/migesture/migesture.jar /system/etc/init/migesture.rc
+#   (SELinux 文件标签沿用 system_file，与 mifod 的 fod-bridge.jar 相同)
+
+service migesture /system/bin/app_process64 /system/bin MiGestureBridge
+    class late_start
+    user root
+    group root system input graphics readproc
+    seclabel u:r:su:s0
+    setenv CLASSPATH /system/etc/migesture/migesture.jar
+
+on post-fs-data
+    mkdir /data/vendor/migesture 0770 root root

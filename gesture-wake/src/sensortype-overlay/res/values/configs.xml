@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- proximity = 8，本机存在且为 wakeup 传感器；取值 0.0/5.0 对 Flyme 逻辑惰性 -->
+    <integer name="config_flipSensorType">8</integer>
+    <integer name="config_raiseSensorType">8</integer>
+</resources>

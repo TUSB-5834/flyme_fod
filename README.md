@@ -1,6 +1,6 @@
 # flyme_fod
 
-修复小米设备超声波指纹移植 Flyme 之后的 **指纹不可用** 与 **指纹动画不可用**。
+修复小米设备超声波指纹移植 Flyme 之后的 **指纹不可用**、**指纹动画不可用** 与 **双击/抬腕亮屏不可用**。
 
 > 验证环境：Xiaomi 15（`dada` / 24129PN74C）· Flyme 12 移植版 · Android 16 · KernelSU
 
@@ -10,8 +10,9 @@
 |---|---|---|---|---|
 | 1 | **指纹不可用** | 按指纹毫无反应、无法录入、锁屏不解锁 | **MiFodBridge** —— 常驻 root 服务，监听生物识别状态，用 AIDL 通知触摸/指纹 HAL 切换 FOD 模式 | [`mifod-bridge/`](mifod-bridge/) |
 | 2 | **指纹动画不可用** | 能解锁，但没有 Flyme 那套 FOD 认证动画 | **FodGesture** —— 监听指纹 HAL 的 FOD 触摸日志，向 `gesture_manager` 注入原生 `keyCode 413` | [`fod-animation/`](fod-animation/) |
+| 3 | **双击 / 抬腕亮屏不可用** | 熄屏双击毫无反应；熄屏拿起也没反应，而且设置里连「抬腕亮屏」开关都没有 | **MiGestureBridge + SensorTypesOverlay** —— root 桥下发小米触摸 HAL 的双击模式、订阅小米 `pickup` 传感器自己唤醒，并用 RRO 把设置里的开关找回来 | [`gesture-wake/`](gesture-wake/) |
 
-两者互不依赖，可以只用一个。
+三者互不依赖，可以只用其中一个。
 
 ---
 
@@ -59,7 +60,35 @@ IGestureManager.triggerGesture()
 
 ---
 
-## 三、目录结构
+## 三、双击亮屏 / 抬腕亮屏不可用 → MiGestureBridge + SensorTypesOverlay
+
+**根因**：这两个功能移植后都是哑的，但断点不同：
+
+- **双击亮屏**：Flyme 只往魅族节点 `/sys/class/meizu/tp/gesture_control` 写，小米机器**没有这个节点** →
+  触摸 IC 从未进入双击模式。小米侧真正的开关是 `ITouchFeature.setModeValue(touchId, mode, value)` 里的
+  `mode = 14`（驱动里就是 `Touch_Doubletap_Mode`）。
+- **抬腕亮屏**：Flyme 的 `RaiseFlipperController` 用魅族私有传感器 `65538/65539`（本机不存在），
+  于是 `MzUtils.supportRaiseFlipFeature()` 为 false —— **连设置里的开关都被移除**；而且小米 `pickup`
+  的语义与魅族**相反**（`1.0 = 拿起` vs 魅族 `2 = 拿起`），Flyme 那套控制器不能直接复用。
+
+**方案**：一个常驻 `app_process` 进程 `MiGestureBridge`（root），跟随 Flyme 自己的开关：
+
+1. `mz_quick_wakeup_double_click` → `setModeValue(0, 14, 0|1)`：IC 进/出双击模式，双击由固件上报 `KEY_WAKEUP(143)`；
+2. `raisewakeup_switch` / `flipwakeup_switch` → 订阅/退订小米 `xiaomi.sensor.pickup(33171036)`，
+   熄屏收到 `1.0` 就 `PowerManager.wakeUp()`，`2.0`（放下）忽略；
+3. 用一个静态 RRO（或运行时 `cmd overlay fabricate`）把 `config_flipSensorType` / `config_raiseSensorType`
+   指向本机存在的 `proximity(8)` → `supportRaiseFlipFeature()` 变 true → 设置里的「抬腕亮屏」开关回来。
+
+> ⚠️ 运行时 `cmd overlay fabricate` 造出来的覆盖**不跨重启**（实测重启后资源又回到 `65538/65539`，
+> 开关随之消失）；本目录两个 KernelSU 模块的 `service.sh` 会在**每次开机重建**，也可以直接把静态 RRO
+> 放进 ROM 的 `product/overlay/` 永久生效。
+
+机制细节、三次自我更正与全部实测日志见 [`gesture-wake/README.md`](gesture-wake/README.md)
+与 [`gesture-wake/docs/`](gesture-wake/docs/)。
+
+---
+
+## 四、目录结构
 
 ```
 flyme_fod/
@@ -72,18 +101,25 @@ flyme_fod/
 │   └── prebuilt/
 │       ├── fod-bridge.jar          编译产物
 │       └── fod-bridge.zip          可直接刷入的三件套（jar + mifod + mifod.rc）
-└── fod-animation/                FOD 解锁动画（问题 2）
-    ├── README.md                   原理 / 安装 / 验证 / 已知限制
-    ├── src/                        FodGesture.java + 打包脚本 + 编译脚本
-    ├── release/                    KernelSU 模块 / jar / 粘贴脚本
-    ├── docs/                       安装说明 + 完整逆向报告
-    ├── evidence/                   反编译关键类（MzGestureController、Udfps* …）
-    └── tools/                      设备端时间线测量脚本
+├── fod-animation/                FOD 解锁动画（问题 2）
+│   ├── README.md                   原理 / 安装 / 验证 / 已知限制
+│   ├── src/                        FodGesture.java + 打包脚本 + 编译脚本
+│   ├── release/                    KernelSU 模块 / jar / 粘贴脚本
+│   ├── docs/                       安装说明 + 完整逆向报告
+│   ├── evidence/                   反编译关键类（MzGestureController、Udfps* …）
+│   └── tools/                      设备端时间线测量脚本
+└── gesture-wake/                 双击亮屏 / 抬腕亮屏（问题 3）
+    ├── README.md                   机制 / 部署 / 验证 / 已知限制
+    ├── src/                        MiGestureBridge.java + RRO 源 + 两个构建脚本
+    ├── release/                    KernelSU 模块 / jar / 静态 RRO / 运行时覆盖脚本 / 整包
+    ├── docs/                       总整理 + 完整根因分析 + 修改清单
+    ├── evidence/                   反编译关键类（MzUtils、两个 Controller、页面 XML …）
+    └── tools/                      一键体检脚本
 ```
 
 ---
 
-## 四、快速开始
+## 五、快速开始
 
 ### 1. 指纹不可用
 
@@ -106,9 +142,22 @@ su -c "tail -f /data/vendor/mifod/mifod.log"
 su -c "tail -20 /data/local/tmp/fodgesture/watch.log"
 ```
 
+### 3. 双击 / 抬腕亮屏不可用
+
+```sh
+# 推荐：KernelSU 管理器安装 gesture-wake/release/migesture-ksu.zip（+ 可选 sensortypeoverlay-ksu.zip），重启
+# 模块会在每次开机自动起桥并重建运行时覆盖 —— 重启后开关不会再消失
+# 验证：
+su -c "tail -20 /data/local/tmp/migesture/watch.log"
+su -c "dmesg | grep Touch_Doubletap_Mode | tail -3"
+```
+
+也可以只救急（当次开机有效）：`su -c 'sh gesture-wake/release/apply_overlay.sh'`，
+或直接打开独立页「抬腕亮屏」：`su -c 'sh gesture-wake/tools/start_raise.sh'`。
+
 ---
 
-## 五、开源协议
+## 六、开源协议
 
 本项目采用 **GNU General Public License v3.0**（`GPL-3.0-or-later`），全文见 [`LICENSE`](LICENSE)。
 
@@ -121,13 +170,13 @@ su -c "tail -20 /data/local/tmp/fodgesture/watch.log"
 
 ---
 
-## 六、免责声明
+## 七、免责声明
 
-- 两者都需要 **root**，都会读写系统分区或常驻后台，操作前请自行备份。
+- 三者都需要 **root**，都会读写系统分区或常驻后台，操作前请自行备份。
 - 已在自己机器（Xiaomi 15 / Flyme 12 移植版 / Android 16）实测可用；**不同机型、不同 ROM 的
   binder 事务号、服务名、类名可能不同**，请先按各自 `README` 里的验证步骤确认再长期使用。
 - 代码按"现状"提供，因使用本仓库造成的任何后果由使用者自行承担。
 
 ---
 
-*关键词：Flyme 移植 · 超声波指纹 · 小米 15 · FOD · UDFPS · 指纹解锁动画 · IGestureManager · MiFod Bridge*
+*关键词：Flyme 移植 · 超声波指纹 · 小米 15 · FOD · UDFPS · 指纹解锁动画 · IGestureManager · MiFod Bridge · 双击亮屏 · 抬腕亮屏 · ITouchFeature · pickup · RRO · overlayable*

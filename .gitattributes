@@ -2,8 +2,10 @@
 * text=auto
 
 # 二进制：禁止任何换行/编码转换
-*.jar   binary
-*.zip   binary
-*.so    binary
-*.dex   binary
-*.apk   binary
+*.jar      binary
+*.zip      binary
+*.so       binary
+*.dex      binary
+*.apk      binary
+*.keystore binary
+*.idmap    binary

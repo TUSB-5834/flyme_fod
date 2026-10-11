@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" android:title="@string/subscreen_title">
+    <com.meizu.settings.subscreen.FlymeSubscreenBadgePreference android:key="subscreen_custom_badge"/>
+    <SwitchPreference
+        android:title="@string/subscreen_open"
+        android:key="subscreen_switch"/>
+    <PreferenceCategory
+        android:title="@string/subscreen_category_title"
+        android:key="subscreen_feature">
+        <SwitchPreference
+            android:title="@string/subscreen_double_click_wakeup"
+            android:key="subscreen_double_click_wakeup"/>
+        <ListPreference
+            android:persistent="false"
+            android:entries="@array/flyme_subscreen_timeout_entries"
+            android:title="@string/subscreen_timeout"
+            android:key="subscreen_timeout"
+            android:entryValues="@array/flyme_subscreen_timeout_values"/>
+        <SwitchPreference
+            android:persistent="false"
+            android:title="@string/subscreen_camera"
+            android:key="subscreen_camera"
+            android:summary="@string/subscreen_camera_summary"/>
+        <Preference
+            android:title="@string/subscreen_notification_management"
+            android:key="subscreen_notification_manage"
+            android:widgetLayout="@layout/mz_right_arrow"
+            android:fragment="com.meizu.settings.subscreen.FlymeSubscreenNotificationManagement"/>
+    </PreferenceCategory>
+</PreferenceScreen>

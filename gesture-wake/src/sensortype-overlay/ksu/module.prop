@@ -1,0 +1,6 @@
+id=sensortypeoverlay
+name=SensorType Overlay (抬手/翻转亮屏开关恢复)
+version=1.1
+versionCode=2
+author=flyme-port
+description=开机自动重建运行时 RRO：把 android:integer/config_flipSensorType / config_raiseSensorType 从魅族的 65538/65539 指向本机真实存在的 proximity(8)，让 MzUtils.supportRaiseFlipFeature() 返回 true，设置的「抬手/翻转亮屏」开关重新出现。用 cmd overlay fabricate 而非静态 APK，因为本机 /product/overlay 是 mi_ext 的 overlayfs 挂载点，模块文件会被遮住；fabricate 的覆盖不跨重启，故每次开机重建（APK 仍随模块附带，供重打 ROM 时放进 product/overlay 永久生效）。

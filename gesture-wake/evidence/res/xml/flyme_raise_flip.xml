@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/prv/res/android">
+    <SwitchPreference
+        android:title="@string/raise_flip_config_title"
+        android:key="raise_flip"/>
+</PreferenceScreen>

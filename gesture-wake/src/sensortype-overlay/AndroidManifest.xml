@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  静态 RRO：把 android 包的 config_flipSensorType / config_raiseSensorType
+  从魅族的 65538/65539 改成本机真实存在的 proximity(8)。
+
+  作用：MzUtils.supportRaiseFlipFeature() 与 SystemUI RaiseFlipperController 都是读这两个
+  资源 + getDefaultSensor(type,true)；改成存在的传感器后：
+    - Flyme 设置里「抬手/翻转亮屏」开关会重新出现（AODAndLockScreenSettings 不再 removePreference）
+    - proximity 的取值只有 0.0/5.0，不会命中 Flyme 判断里的 1(亮屏)/2(接近流程)/4/5(灭屏)
+      → SystemUI 侧保持惰性，实际抬手唤醒由 MiGestureBridge 负责
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.flyme.overlay.sensortypes"
+    android:versionCode="1"
+    android:versionName="1.0">
+    <uses-sdk android:minSdkVersion="34" android:targetSdkVersion="36" />
+    <application android:hasCode="false" />
+    <overlay
+        android:targetPackage="android"
+        android:isStatic="true"
+        android:priority="601" />
+</manifest>
