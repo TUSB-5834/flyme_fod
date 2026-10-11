@@ -162,3 +162,9 @@ setModeValue(auth) = 0
 export ANDROID_HOME=/path/to/android-sdk
 ./build.sh          # 产物：./fod-bridge.jar
 ```
+
+---
+
+## 七、开源协议
+
+[GNU General Public License v3.0](../LICENSE)（`GPL-3.0-or-later`）· 不提供任何担保。

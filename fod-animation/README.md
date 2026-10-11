@@ -156,3 +156,12 @@ powershell -File src/build_fodgesture.ps1
 |---|---|
 | v4 | `logwatch` 模式：以指纹 HAL 的 `QFP onPointerDown/onPointerUp` 为触发源；pulse 的 DOWN/UP 分开 try/catch 保证 162 一定发出 |
 | v4-r2 | 开机时序修复：`service.sh` 开机即启 + 看门狗保活；binder 解析推迟到第一次触摸（带 10 秒重试），极早期启动不再失败 |
+
+---
+
+## 八、开源协议
+
+[GNU General Public License v3.0](../LICENSE)（`GPL-3.0-or-later`）· 不提供任何担保。
+
+> 例外：`evidence/` 下是第三方程序的反编译产物，仅为说明定位过程而保留，
+> **不适用**本项目的 GPL 授权，版权归各自权利人所有（见 [`evidence/README.md`](evidence/README.md)）。

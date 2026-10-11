@@ -108,7 +108,20 @@ su -c "tail -20 /data/local/tmp/fodgesture/watch.log"
 
 ---
 
-## 五、免责声明
+## 五、开源协议
+
+本项目采用 **GNU General Public License v3.0**（`GPL-3.0-or-later`），全文见 [`LICENSE`](LICENSE)。
+
+你可以自由使用、修改、再分发（含商用）；但**分发衍生作品时必须同样以 GPL 开源，并提供完整源码**。
+本软件不提供任何担保。
+
+> **例外说明**：`fod-animation/evidence/` 下是**第三方程序的反编译产物**
+> （AOSP SystemUI / Flyme 组件），仅为说明问题定位过程而保留，**不适用**本项目的 GPL 授权，
+> 版权归各自权利人所有。其余全部内容（源码、脚本、文档、构建产物）均按 GPL-3.0 授权。
+
+---
+
+## 六、免责声明
 
 - 两者都需要 **root**，都会读写系统分区或常驻后台，操作前请自行备份。
 - 已在自己机器（Xiaomi 15 / Flyme 12 移植版 / Android 16）实测可用；**不同机型、不同 ROM 的
